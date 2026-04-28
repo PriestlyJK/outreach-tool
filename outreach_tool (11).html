@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Outreach Donor Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0e0e11;color:#f0f0f5;font-family:'DM Sans',system-ui,sans-serif;font-size:14px}
+.app{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+.sidebar{background:#16161a;border-right:1px solid #2a2a35;padding:20px 0}
+.sidebar-title{font-size:11px;color:#7a7a90;letter-spacing:.1em;text-transform:uppercase;padding:0 16px 12px}
+.nav{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;color:#7a7a90;font-size:13px;border-left:2px solid transparent}
+.nav:hover{color:#f0f0f5;background:#1e1e24}
+.nav.active{color:#7c6aff;border-left-color:#7c6aff;background:rgba(124,106,255,.08)}
+.main{padding:28px;overflow:auto}
+.title{font-size:20px;font-weight:600;margin-bottom:4px}
+.sub{color:#7a7a90;font-size:13px;margin-bottom:20px}
+.card{background:#16161a;border:1px solid #2a2a35;border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.card-label{font-size:11px;font-weight:600;color:#7a7a90;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+label{display:block;font-size:12px;color:#7a7a90;margin-bottom:5px}
+input[type=text],input[type=number],textarea{width:100%;background:#0e0e11;border:1px solid #2a2a35;border-radius:7px;color:#f0f0f5;font-size:13px;padding:8px 11px;outline:none;font-family:inherit}
+input:focus,textarea:focus{border-color:#7c6aff}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-primary{background:#7c6aff;color:#fff}.btn-primary:hover{background:#6a58ee}
+.btn-success{background:#00e5a0;color:#0e0e11}.btn-success:hover{background:#00cc8f}
+.btn-ghost{background:#1e1e24;color:#f0f0f5;border:1px solid #2a2a35}.btn-ghost:hover{border-color:#7c6aff;color:#7c6aff}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.upload-zone{border:2px dashed #2a2a35;border-radius:10px;padding:28px;text-align:center;cursor:pointer;position:relative;transition:border .15s}
+.upload-zone:hover{border-color:#7c6aff;background:rgba(124,106,255,.04)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-text{color:#7a7a90;font-size:13px}
+.upload-text strong{color:#7c6aff}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:#16161a;border:1px solid #2a2a35;border-radius:9px;padding:12px 18px;flex:1;min-width:90px}
+.stat-n{font-size:22px;font-weight:600;font-family:monospace}
+.stat-l{font-size:11px;color:#7a7a90;margin-top:2px}
+.trow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #2a2a35}
+.trow:last-child{border-bottom:none}
+.tlabel{font-size:13px}
+.tdesc{font-size:11px;color:#7a7a90;margin-top:2px}
+.toggle{width:34px;height:18px;background:#2a2a35;border-radius:9px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#7c6aff}
+.toggle::after{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s}
+.toggle.on::after{transform:translateX(16px)}
+.results-wrap{overflow-x:auto;margin-top:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#1e1e24;color:#7a7a90;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:9px 11px;text-align:left;border-bottom:1px solid #2a2a35;white-space:nowrap}
+tbody tr{border-bottom:1px solid #1e1e24}
+tbody tr:hover{background:#1e1e24}
+tbody td{padding:8px 11px;vertical-align:middle}
+.pill{display:inline-block;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:500;font-family:monospace}
+.pg{background:rgba(0,229,160,.12);color:#00e5a0}
+.py{background:rgba(255,181,71,.12);color:#ffb547}
+.pr{background:rgba(255,92,92,.12);color:#ff5c5c}
+.pp{background:rgba(124,106,255,.12);color:#7c6aff}
+.pgr{background:#1e1e24;color:#7a7a90}
+.dom{font-family:monospace;font-size:11px}
+.dom a{color:#7c6aff;text-decoration:none}
+.dom a:hover{text-decoration:underline}
+.empty{text-align:center;padding:50px 20px;color:#7a7a90}
+.panel{display:none}.panel.active{display:block}
+.tag{display:inline-flex;align-items:center;gap:4px;background:#1e1e24;border:1px solid #2a2a35;border-radius:5px;padding:3px 8px;font-size:11px;color:#7a7a90;font-family:monospace;margin:3px}
+.tag-x{cursor:pointer;color:#ff5c5c;margin-left:2px}
+.alert{border-radius:8px;padding:11px 15px;font-size:13px;margin-bottom:14px;line-height:1.5}
+.alert-info{background:rgba(124,106,255,.1);border:1px solid rgba(124,106,255,.3);color:#b8b0ff}
+.alert-ok{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:#00e5a0}
+.niche-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.nchip{border:1px solid #2a2a35;border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;color:#7a7a90;background:#1e1e24;transition:all .15s}
+.nchip.sel{border-color:#7c6aff;color:#7c6aff;background:rgba(124,106,255,.1)}
+.debug{background:#1e1e24;border:1px solid #2a2a35;border-radius:8px;padding:12px;font-family:monospace;font-size:11px;color:#7a7a90;margin-top:12px;max-height:160px;overflow-y:auto;white-space:pre-wrap}
+.hint{font-size:11px;color:#7a7a90;margin-top:6px;line-height:1.5}
+.section-note{background:#1e1e24;border-left:3px solid #7c6aff;border-radius:0 7px 7px 0;padding:10px 14px;font-size:12px;color:#b8b0ff;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+  <div class="sidebar-title">Outreach Tool</div>
+  <div class="nav active" onclick="nav('analyzer',this)">📊 CSV Analyzer</div>
+  <div class="nav" onclick="nav('stoplist',this)">🚫 Stop List</div>
+  <div class="nav" onclick="nav('finder',this)">🔍 Site Finder</div>
+  <div class="nav" onclick="nav('filters',this)">⚙️ Filters</div>
+  <div class="nav" onclick="nav('blocked',this)">🗑️ Blocked Log</div>
+  <div class="nav" onclick="nav('similar',this)">🔮 Similar Sites</div>
+</div>
+<div class="main">
+
+<!-- ANALYZER -->
+<div class="panel active" id="panel-analyzer">
+  <div class="title">CSV Analyzer</div>
+  <div class="sub">Завантаж Ahrefs backlinks export → отримай чистий список донорів</div>
+  <div class="section-note">💡 Keywords у Ahrefs backlinks = keywords сторінки що посилається, НЕ домену. Тому фільтр по keywords тут вимкнений за замовчуванням — фільтруємо по Domain Rating і Domain Traffic.</div>
+  <div class="card">
+    <div class="upload-zone">
+      <input type="file" multiple accept=".csv" id="mainInput" onchange="loadMain(event)">
+      <div style="font-size:26px;margin-bottom:8px">📂</div>
+      <div class="upload-text">Перетягни або <strong>вибери CSV файли</strong> з Ahrefs<br><small>Можна кілька файлів одразу</small></div>
+    </div>
+    <div id="fileList" style="margin-top:8px"></div>
+  </div>
+  <div id="statsBar" style="display:none" class="stats">
+    <div class="stat"><div class="stat-n" id="sTotal">0</div><div class="stat-l">Всього рядків</div></div>
+    <div class="stat"><div class="stat-n" id="sPassed">0</div><div class="stat-l">Пройшли фільтри</div></div>
+    <div class="stat"><div class="stat-n" id="sDupes">0</div><div class="stat-l">Дублікати</div></div>
+    <div class="stat"><div class="stat-n" id="sBlocked">0</div><div class="stat-l">Заблоковано</div></div>
+    <div class="stat"><div class="stat-n" id="sStop">0</div><div class="stat-l">В стоп-листі</div></div>
+  </div>
+  <div id="debugLog" class="debug" style="display:none"></div>
+  <div id="resultsArea"></div>
+</div>
+
+<!-- STOPLIST -->
+<div class="panel" id="panel-stoplist">
+  <div class="title">Stop List</div>
+  <div class="sub">Завантаж беклінки проектів — при аналізі підсвітить де вже є розміщення</div>
+  <div class="alert alert-info">Завантажується один раз і зберігається автоматично в браузері.</div>
+  <div id="projCards"></div>
+  <div class="btn-row">
+    <button class="btn btn-ghost btn-sm" onclick="clearAll()">Очистити все</button>
+    <span style="color:#7a7a90;font-size:12px" id="slTotal"></span>
+  </div>
+</div>
+
+<!-- FINDER -->
+<div class="panel" id="panel-finder">
+  <div class="title">Site Finder — AI Query Generator</div>
+  <div class="sub">Gemini AI генерує органічні запити → знаходиш жирні сайти → витягуєш беклінки в Ahrefs</div>
+  <div class="alert alert-info">
+    <strong>Флоу:</strong> Вибери ніші → AI генерує реальні органічні запити → відкрий в Google → збери домени → Ahrefs Batch Analysis → Export CSV → Analyzer
+  </div>
+  <div class="card">
+    <div class="card-label">🔑 Gemini API Key</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="password" id="geminiKey" placeholder="Встав свій Gemini API ключ (aistudio.google.com)" style="flex:1">
+      <button class="btn btn-ghost btn-sm" onclick="saveKey()">Зберегти</button>
+      <button class="btn btn-ghost btn-sm" onclick="testKey()" id="testBtn">🔍 Тест</button>
+    </div>
+    <p class="hint" style="margin-top:6px">Безкоштовно на <strong>aistudio.google.com</strong> → Get API key. Зберігається локально в браузері.</p>
+    <div id="keyStatus" style="margin-top:6px;font-size:12px"></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Ніші для пошуку</div>
+    <div class="niche-grid" id="nicheGrid"></div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="customNiche" placeholder="Своя ніша...">
+      <button class="btn btn-ghost btn-sm" onclick="addNiche()">+ Додати</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">Кількість запитів на нішу</div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="qcount" value="15" checked> 15 запитів</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="qcount" value="30"> 30 запитів</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="radio" name="qcount" value="50"> 50 запитів</label>
+    </div>
+    <p class="hint" style="margin-top:8px">Більше запитів = більше часу генерації. Для початку 15 достатньо.</p>
+  </div>
+  <button class="btn btn-primary" onclick="genAIQueries()" id="genBtn">⚡ Згенерувати через Gemini</button>
+  <div id="queriesOut" style="margin-top:16px"></div>
+</div>
+
+<!-- FILTERS -->
+<div class="panel" id="panel-filters">
+  <div class="title">Filter Settings</div>
+  <div class="sub">Налаштуй критерії відбору донорів</div>
+  <div class="card">
+    <div class="card-label">Метрики домену</div>
+    <div class="grid3">
+      <div><label>Domain Rating (DR) мін.</label><input type="number" id="fDR" value="25"></div>
+      <div><label>Domain Traffic мін.</label><input type="number" id="fTraffic" value="1000"></div>
+      <div><label>Page Traffic мін. (0 = вимк)</label><input type="number" id="fPageTr" value="0"></div>
+    </div>
+    <p class="hint">⚠️ Keywords у backlinks export = ключі сторінки-донора, а не домену. Фільтр по keywords тут не використовується — тільки DR і Traffic домену.</p>
+  </div>
+  <div class="card">
+    <div class="card-label">Якісні фільтри</div>
+    <div id="togglesQuality"></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Блокувати типи доменів</div>
+    <div id="togglesBlock"></div>
+  </div>
+  <div class="card">
+    <div class="card-label">Стоп-слова в домені</div>
+    <input type="text" id="kwInput" placeholder="casino, betting, pills..." onkeydown="if(event.key==='Enter')addKW()">
+    <div id="kwTags" style="margin-top:8px"></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addKW()">+ Додати</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-success" onclick="saveFilters()">✓ Зберегти та запустити</button>
+  </div>
+</div>
+
+<!-- BLOCKED LOG -->
+<div class="panel" id="panel-blocked">
+  <div class="title">Blocked Log</div>
+  <div class="sub">Домени що були заблоковані фільтрами — перевір чи не потрапило зайвого</div>
+  <div id="blockedStats" class="stats" style="display:none"></div>
+  <div id="blockedArea"><div class="empty">🔍 Спочатку завантаж CSV в Analyzer</div></div>
+</div>
+
+<!-- SIMILAR SITES -->
+<div class="panel" id="panel-similar">
+  <div class="title">Similar Site Finder</div>
+  <div class="sub">Вставляєш домен → AI генерує запити для пошуку схожих сайтів в тій самій ніші</div>
+  <div class="alert alert-info">
+    AI аналізує нішу і аудиторію домену → генерує Google запити → ти знаходиш схожі жирні сайти → Ahrefs → Analyzer
+  </div>
+  <div class="card">
+    <div class="card-label">Домен для аналізу</div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="similarDomain" placeholder="напр. edubirdie.com або grammarly.com" style="flex:1">
+      <button class="btn btn-primary" onclick="findSimilar()" id="similarBtn">🔮 Знайти схожі</button>
+    </div>
+    <p class="hint" style="margin-top:6px">Можна вставити кілька доменів через кому для кращого результату</p>
+  </div>
+  <div id="similarOut" style="margin-top:16px"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+let mainData=[], stoplists=[{},{},{}], projNames=['EssayService','DoMyEssay','EssayHub'];
+let blockKW=['casino','porn','pills','viagra','crypto','betting','gambling','adult','xxx'];
+let filtered=[];
+const NICHES=['SaaS','education','productivity','AI tools','career','marketing','fintech','health','legal','cybersecurity','e-commerce','parenting','travel','fitness'];
+let selNiches=['SaaS','education','productivity','AI tools'];
+
+const qualToggles=[
+  {k:'dupes', label:'Видаляти дублікати доменів', desc:'Один рядок на домен', def:true},
+  {k:'lang',  label:'Тільки англійська', desc:'Language містить "en"', def:true},
+  {k:'spam',  label:'Виключати спам (Ahrefs)', desc:'Is spam = true', def:true},
+  {k:'dof',   label:'Тільки dofollow', desc:'Nofollow = false', def:true},
+  {k:'cont',  label:'Тільки in-content', desc:'Content = true', def:true},
+  {k:'http',  label:'Тільки HTTP 200', desc:'Живі сторінки', def:true},
+  {k:'lost',  label:'Виключати lost посилання', desc:'Lost = не порожнє', def:true},
+];
+const blockToggles=[
+  {k:'govorg', label:'.gov / .org / .edu', desc:'Державні та організаційні', def:true},
+  {k:'forums', label:'Форуми та Q&A', desc:'reddit, quora, forum, discourse...', def:true},
+  {k:'web2',   label:'Сабміти та Web 2.0', desc:'medium, blogspot, wordpress.com, tumblr...', def:true},
+  {k:'helpd',  label:'Хелпдеск / тікет-системи', desc:'zendesk, helpscout, intercom, freshdesk...', def:true},
+  {k:'nonlat', label:'Не-латинські символи в домені', desc:'Кирилиця, ієрогліфи тощо', def:true},
+  {k:'spamname',label:'Спамні назви доменів', desc:'mix957gr.com, hot1079.com, kiss108fm — цифри+літери', def:true},
+  {k:'foreigntld',label:'Іноземні TLD', desc:'.fi, .se, .de, .fr, .id, .jp та інші не-англійські', def:true},
+  {k:'universities',label:'Університети і школи', desc:'.ac.uk, .ac.id, .edu.au — академічні домени', def:true},
+];
+let F={};
+[...qualToggles,...blockToggles].forEach(t=>F[t.k]=t.def);
+
+window.onload=()=>{loadStorage();loadKey();renderToggles();renderNiches();renderKWTags();renderProjCards();updateSlTotal();};
+
+function nav(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// TOGGLES
+function renderToggles(){
+  document.getElementById('togglesQuality').innerHTML=qualToggles.map(t=>tHTML(t)).join('');
+  document.getElementById('togglesBlock').innerHTML=blockToggles.map(t=>tHTML(t)).join('');
+}
+function tHTML(t){return `<div class="trow"><div><div class="tlabel">${t.label}</div><div class="tdesc">${t.desc}</div></div><div class="toggle ${F[t.k]?'on':''}" id="tog-${t.k}" onclick="flipF('${t.k}')"></div></div>`;}
+function flipF(k){F[k]=!F[k];document.getElementById('tog-'+k).classList.toggle('on',F[k]);}
+
+// CSV
+function readFile(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file,'UTF-16LE');});}
+function parseAhrefs(text){
+  const lines=text.replace(/\r/g,'').split('\n');
+  if(!lines.length)return[];
+  const headers=lines[0].replace(/^\uFEFF/,'').split('\t').map(h=>h.replace(/^"|"$/g,'').trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const line=lines[i].trim();if(!line)continue;
+    const vals=line.split('\t').map(v=>v.replace(/^"|"$/g,'').trim());
+    if(vals.length<3)continue;
+    const row={};headers.forEach((h,idx)=>row[h]=vals[idx]||'');
+    rows.push(row);
+  }
+  return rows;
+}
+function getDomain(row){
+  const url=row['Referring page URL']||row['Domain']||row['URL']||'';
+  try{const u=new URL(url.startsWith('http')?url:'https://'+url);return u.hostname.replace(/^www\./,'').toLowerCase();}
+  catch{return url.toLowerCase().replace(/^www\./,'').split('/')[0];}
+}
+
+async function loadMain(e){
+  const files=Array.from(e.target.files);if(!files.length)return;
+  mainData=[];let fHTML='';
+  for(const f of files){const text=await readFile(f);const rows=parseAhrefs(text);mainData=mainData.concat(rows);fHTML+=`<span class="tag">📄 ${f.name} <span style="color:#00e5a0">(${rows.length})</span></span>`;}
+  document.getElementById('fileList').innerHTML=fHTML;
+  const dl=document.getElementById('debugLog');dl.style.display='block';dl.textContent='';
+  log('Завантажено: '+mainData.length+' рядків');
+  if(mainData.length){
+    const s=mainData[0];
+    log('Ключі: '+Object.keys(s).slice(0,6).join(', '));
+    log('Домен: '+getDomain(s)+' | DR: '+s['Domain rating']+' | Traffic: '+s['Domain traffic']+' | Lang: '+s['Language']);
+    runAnalysis();
+  }
+}
+function log(m){const el=document.getElementById('debugLog');el.textContent+=m+'\n';el.scrollTop=el.scrollHeight;}
+
+// ANALYSIS
+function runAnalysis(){
+  const minDR=parseFloat(document.getElementById('fDR').value)||0;
+  const minTr=parseFloat(document.getElementById('fTraffic').value)||0;
+  const minPTr=parseFloat(document.getElementById('fPageTr').value)||0;
+  let blocked=0,dupes=0,stopHit=0;
+  const dupeMap={},passed=[];
+  const blockedLog=[];
+  const reasons={dr:0,traffic:0,pageTr:0,lang:0,spam:0,dof:0,cont:0,http:0,lost:0,govorg:0,forums:0,web2:0,helpd:0,nonlat:0,foreigntld:0,universities:0,spamname:0,kw:0};
+
+  for(const row of mainData){
+    const domain=getDomain(row);
+    const url=row['Referring page URL']||'';
+    const dr=parseFloat(row['Domain rating']||'0');
+    const tr=parseFloat(row['Domain traffic']||'0');
+    const pTr=parseFloat(row['Page traffic']||'0');
+    const lang=(row['Language']||'').toLowerCase();
+    const isSpam=(row['Is spam']||'').toLowerCase()==='true';
+    const nofollow=(row['Nofollow']||'').toLowerCase()==='true';
+    const content=(row['Content']||'').toLowerCase()==='true';
+    const http=row['Referring page HTTP code']||'';
+    const lost=row['Lost']||'';
+
+    if(dr<minDR){blocked++;reasons.dr++;blockedLog.push({domain:getDomain(row),url:row['Referring page URL']||'',dr,tr,reason:'DR < '+minDR});continue;}
+    if(tr<minTr){blocked++;reasons.traffic++;blockedLog.push({domain:getDomain(row),url:row['Referring page URL']||'',dr,tr,reason:'Traffic < '+minTr});continue;}
+    if(minPTr>0&&pTr<minPTr){blocked++;reasons.pageTr++;continue;}
+    if(F.lang&&lang&&!lang.includes('en')){blocked++;reasons.lang++;continue;}
+    if(F.spam&&isSpam){blocked++;reasons.spam++;continue;}
+    if(F.dof&&nofollow){blocked++;reasons.dof++;continue;}
+    if(F.cont&&!content){blocked++;reasons.cont++;continue;}
+    if(F.http&&http&&http!=='200'){blocked++;reasons.http++;continue;}
+    if(F.lost&&lost){blocked++;reasons.lost++;continue;}
+    if(F.govorg&&(domain.endsWith('.gov')||domain.endsWith('.edu')||domain.endsWith('.org'))){blocked++;reasons.govorg++;continue;}
+    if(F.forums&&/reddit|quora|forum|community|stackexchange|stackoverflow|discourse/.test(domain)){blocked++;reasons.forums++;continue;}
+    if(F.web2&&/medium\.com|blogspot|wordpress\.com|tumblr|weebly|wix\.com|blogger\.com|substack\.com/.test(domain)){blocked++;reasons.web2++;continue;}
+    if(F.helpd&&/zendesk|helpscout|intercom|freshdesk|atlassian|hubspot|notion\.so/.test(domain)){blocked++;reasons.helpd++;continue;}
+    if(F.nonlat&&/[^\x00-\x7F]/.test(domain)){blocked++;reasons.nonlat++;continue;}
+    // Block non-English country TLDs
+    if(F.foreigntld){
+      const nonEngTLDs=/\.(fi|se|no|dk|nl|de|fr|it|es|pt|pl|ru|ua|cn|jp|kr|id|th|vn|tr|ar|br|mx|in|pk|bd|eg|za|ng|ke|gh|ro|hu|cz|sk|bg|hr|si|lt|lv|ee|is|by|kz|uz|ge|am|az|md|rs|me|mk|al|ba|xk|cy|mt|lu|li|mc|sm|ad|va|im|je|gg|fo|gl|aw|cw|sx|bq|mf|pm|yt|re|gp|mq|nc|pf|wf|bl|tc|vg|vi|gu|as|mp|pr|um)$/;
+      if(nonEngTLDs.test(domain)){blocked++;reasons.foreigntld=(reasons.foreigntld||0)+1;continue;}
+    }
+    // Block university/academic domains
+    if(F.universities){
+      if(/\.ac\.[a-z]{2}$/.test(domain)||/\.edu\.[a-z]{2}$/.test(domain)||/\.(ac|edu|sch|k12)\.[a-z]{2,3}$/.test(domain)){blocked++;reasons.universities=(reasons.universities||0)+1;continue;}
+    }
+    // Block radio/spammy domains with digits mixed in name like mix957gr.com, hot1079.com
+    if(F.spamname){
+      const nameOnly=domain.split('.')[0];
+      // Has digits AND letters mixed together in suspicious pattern (radio stations, spam)
+      if(/[a-z]+\d{2,}[a-z]*$/.test(nameOnly)||/^[a-z]{1,4}\d{3,}/.test(nameOnly)){blocked++;reasons.spamname=(reasons.spamname||0)+1;continue;}
+    }
+    if(blockKW.some(k=>domain.includes(k))){blocked++;continue;}
+
+    if(F.dupes&&dupeMap[domain]){dupes++;continue;}
+    dupeMap[domain]=true;
+
+    const slStatus=stoplists.map((sl,i)=>({name:projNames[i],has:!!sl[domain]}));
+    if(slStatus.some(s=>s.has))stopHit++;
+    passed.push({domain,url,dr,tr,pTr,slStatus});
+  }
+
+  filtered=passed;
+  // Build reason summary
+  const topReasons=Object.entries(reasons).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`${k}:${v}`).join(', ');
+  log(`Результат: ${passed.length} пройшли | ${blocked} заблоковано | ${dupes} дублікати`);
+  if(topReasons) log(`Причини блокування: ${topReasons}`);
+
+  document.getElementById('statsBar').style.display='flex';
+  document.getElementById('sTotal').textContent=mainData.length;
+  document.getElementById('sPassed').textContent=passed.length;
+  document.getElementById('sDupes').textContent=dupes;
+  document.getElementById('sBlocked').textContent=blocked;
+  document.getElementById('sStop').textContent=stopHit;
+  window._blockedLog=blockedLog;
+  renderResults(passed);
+  renderBlockedLog(blockedLog,reasons);
+}
+
+function renderResults(data){
+  const el=document.getElementById('resultsArea');
+  if(!data.length){el.innerHTML='<div class="empty">🔍 Нічого не пройшло. Дивись debug log вище — там вказано причини.</div>';return;}
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <span style="color:#7a7a90;font-size:13px">${data.length} доменів${data.length>500?' (перші 500 у таблиці, всі — в Export)':''}</span>
+    <button class="btn btn-success btn-sm" onclick="exportCSV()">⬇ Export CSV для Snov.io</button>
+  </div><div class="results-wrap"><table>
+    <thead><tr><th>Домен</th><th>DR</th><th>Domain Traffic</th><th>Page Traffic</th>${projNames.map(n=>`<th>${n}</th>`).join('')}</tr></thead><tbody>`;
+  for(const r of data.slice(0,500)){
+    const drC=r.dr>=50?'pg':r.dr>=30?'py':'pgr';
+    const slC=r.slStatus.map((s,i)=>{const c=['pp','pg','pr'][i];return`<td style="text-align:center">${s.has?`<span class="pill ${c}">✓</span>`:`<span class="pill pgr">—</span>`}</td>`;}).join('');
+    html+=`<tr><td class="dom"><a href="https://${r.domain}" target="_blank">${r.domain}</a></td>
+      <td><span class="pill ${drC}">${Math.round(r.dr)}</span></td>
+      <td>${r.tr>=1000?(r.tr/1000).toFixed(1)+'K':Math.round(r.tr)}</td>
+      <td>${r.pTr>=1000?(r.pTr/1000).toFixed(1)+'K':Math.round(r.pTr)}</td>${slC}</tr>`;
+  }
+  if(data.length>500)html+=`<tr><td colspan="${4+projNames.length}" style="text-align:center;padding:12px;color:#7a7a90">... ще ${data.length-500} доменів у Export CSV</td></tr>`;
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
+function renderBlockedLog(log,reasons){
+  const statsEl=document.getElementById('blockedStats');
+  const areaEl=document.getElementById('blockedArea');
+  if(!log.length){areaEl.innerHTML='<div class="empty">✓ Нічого не заблоковано або файл ще не завантажено</div>';return;}
+  
+  statsEl.style.display='flex';
+  const topReasons=Object.entries(reasons).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  statsEl.innerHTML=topReasons.slice(0,6).map(([k,v])=>`<div class="stat"><div class="stat-n">${v}</div><div class="stat-l">${k}</div></div>`).join('');
+
+  // Group by reason
+  const byReason={};
+  log.forEach(r=>{if(!byReason[r.reason])byReason[r.reason]=[];byReason[r.reason].push(r);});
+  
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <span style="color:#7a7a90;font-size:13px">${log.length} заблокованих доменів</span>
+    <button class="btn btn-ghost btn-sm" onclick="exportBlocked()">⬇ Export заблокованих</button>
+  </div>`;
+  
+  Object.entries(byReason).slice(0,10).forEach(([reason,items])=>{
+    html+=`<div class="card" style="margin-bottom:10px">
+      <div class="card-label" style="margin-bottom:8px">🚫 ${reason} — ${items.length} доменів</div>`;
+    items.slice(0,20).forEach(r=>{
+      html+=`<div class="trow">
+        <div class="dom"><a href="https://${r.domain}" target="_blank">${r.domain}</a></div>
+        <div style="display:flex;gap:8px;font-size:11px;color:#7a7a90">
+          <span>DR: ${Math.round(r.dr||0)}</span>
+          <span>TR: ${r.tr>=1000?(r.tr/1000).toFixed(1)+'K':Math.round(r.tr||0)}</span>
+        </div>
+      </div>`;
+    });
+    if(items.length>20)html+=`<div style="font-size:11px;color:#7a7a90;padding:8px 0">... ще ${items.length-20} доменів</div>`;
+    html+=`</div>`;
+  });
+  areaEl.innerHTML=html;
+}
+
+function exportBlocked(){
+  if(!window._blockedLog?.length)return;
+  const h=['Domain','DR','Traffic','Reason'];
+  const rows=window._blockedLog.map(r=>[r.domain,Math.round(r.dr||0),Math.round(r.tr||0),r.reason]);
+  const csv='\uFEFF'+[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='blocked_domains.csv';a.click();
+}
+
+function exportCSV(){
+  const h=['Domain','DR','Domain Traffic','Page Traffic',...projNames];
+  const rows=filtered.map(r=>[r.domain,Math.round(r.dr),Math.round(r.tr),Math.round(r.pTr),...r.slStatus.map(s=>s.has?'YES':'NO')]);
+  const csv='\uFEFF'+[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='donors_clean.csv';a.click();
+}
+
+// STOPLIST
+function renderProjCards(){
+  const colors=['#7c6aff','#00e5a0','#ff5c5c'];
+  document.getElementById('projCards').innerHTML=stoplists.map((sl,i)=>`
+    <div class="card" style="border-left:3px solid ${colors[i]}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${colors[i]}"></div>
+        <input type="text" value="${projNames[i]}" onchange="projNames[${i}]=this.value;saveStorage()" style="border:none;background:transparent;font-size:13px;font-weight:500;color:#f0f0f5;outline:none;width:220px">
+      </div>
+      <div class="upload-zone" style="padding:14px">
+        <input type="file" accept=".csv" onchange="loadSL(event,${i})">
+        <div class="upload-text">📄 Беклінки проекту ${i+1} <strong>(клікни)</strong></div>
+      </div>
+      <div id="slInfo${i}" style="margin-top:6px;font-size:12px;color:#7a7a90">${Object.keys(sl).length?'✓ Збережено '+Object.keys(sl).length+' доменів':''}</div>
+    </div>`).join('');
+}
+async function loadSL(e,idx){
+  const f=e.target.files[0];if(!f)return;
+  const text=await readFile(f);const rows=parseAhrefs(text);
+  stoplists[idx]={};for(const r of rows){const d=getDomain(r);if(d)stoplists[idx][d]=true;}
+  document.getElementById('slInfo'+idx).textContent='✓ Завантажено '+Object.keys(stoplists[idx]).length+' доменів';
+  updateSlTotal();saveStorage();
+}
+function updateSlTotal(){const t=stoplists.reduce((a,sl)=>a+Object.keys(sl).length,0);document.getElementById('slTotal').textContent=t?'Всього: '+t+' доменів':'';}
+function clearAll(){stoplists=[{},{},{}];renderProjCards();updateSlTotal();saveStorage();}
+
+// SITE FINDER — реальні запити для пошуку жирних сайтів
+function renderNiches(){
+  document.getElementById('nicheGrid').innerHTML=NICHES.map(n=>`<div class="nchip ${selNiches.includes(n)?'sel':''}" onclick="tgNiche('${n}',this)">${n}</div>`).join('');
+}
+function tgNiche(n,el){selNiches.includes(n)?selNiches=selNiches.filter(x=>x!==n):selNiches.push(n);el.classList.toggle('sel');}
+function addNiche(){const v=document.getElementById('customNiche').value.trim();if(!v)return;if(!NICHES.includes(v))NICHES.push(v);if(!selNiches.includes(v))selNiches.push(v);document.getElementById('customNiche').value='';renderNiches();}
+
+async function findSimilar(){
+  const apiKey=localStorage.getItem('gemini_key')||'';
+  if(!apiKey){document.getElementById('similarOut').innerHTML='<div class="alert" style="background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3);color:#ff5c5c">Спочатку додай Gemini API ключ в Site Finder</div>';return;}
+  const domains=document.getElementById('similarDomain').value.trim();
+  if(!domains){document.getElementById('similarOut').innerHTML='<div class="alert alert-info">Введи домен</div>';return;}
+  
+  const btn=document.getElementById('similarBtn');
+  btn.disabled=true;btn.textContent='⏳ Аналізую...';
+  document.getElementById('similarOut').innerHTML='<div class="alert alert-info">⏳ Gemini аналізує нішу домену і генерує запити для пошуку схожих сайтів...</div>';
+
+  const prompt=`You are an SEO outreach specialist. Analyze these domains and generate Google search queries to find similar authoritative websites.
+
+Domains to analyze: ${domains}
+
+Your task:
+1. Understand the niche, topic, target audience, and content type of these domains
+2. Generate 20 specific Google search queries that would surface SIMILAR websites in Google results
+3. Queries must find sites with similar authority level, similar audience, similar content type
+4. Queries should be informational (not commercial) so Google shows content blogs and media sites
+5. Mix different angles: problems the audience faces, topics they search, questions they ask
+6. Avoid generic queries — be specific to this niche and audience
+7. Queries should surface real content sites, NOT Reddit/Wikipedia/Quora
+
+Return ONLY valid JSON:
+{"niche_analysis":"brief description of what these sites are about","queries":["query1","query2",...20 total]}`;
+
+  try{
+    const model=localStorage.getItem('gemini_model')||'gemini-1.5-flash';
+    const url=`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.9,maxOutputTokens:4000}})});
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error');}
+    const data=await res.json();
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    let parsed;
+    try{const clean=text.replace(/\`\`\`json
+?|\`\`\`
+?/g,'').trim();parsed=JSON.parse(clean);}
+    catch{const m=text.match(/\{[\s\S]*\}/);if(m)parsed=JSON.parse(m[0]);else throw new Error('JSON parse failed');}
+    
+    const qs=parsed.queries||[];
+    let html=`<div class="card" style="margin-bottom:12px">
+      <div class="card-label">🔍 Аналіз ніші</div>
+      <p style="font-size:13px;color:#b8b0ff;line-height:1.6">${parsed.niche_analysis||''}</p>
+    </div>
+    <div class="card">
+      <div class="card-label" style="margin-bottom:10px">📋 ${qs.length} запитів для пошуку схожих сайтів</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" onclick="copySimilar(${JSON.stringify(qs)})">📋 Копіювати всі</button>
+        <button class="btn btn-success btn-sm" onclick="openSimilar(${JSON.stringify(qs)})">🔍 Відкрити перші 10</button>
+      </div>`;
+    qs.forEach(q=>{
+      html+=`<div class="trow">
+        <div style="font-family:monospace;font-size:12px;color:#f0f0f5;flex:1">${q}</div>
+        <a href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank" class="btn btn-ghost btn-sm" style="flex-shrink:0;margin-left:8px">🔍</a>
+      </div>`;
+    });
+    html+=`</div>`;
+    document.getElementById('similarOut').innerHTML=html;
+  }catch(e){
+    document.getElementById('similarOut').innerHTML=`<div class="alert" style="background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3);color:#ff5c5c">❌ ${e.message}</div>`;
+  }
+  btn.disabled=false;btn.textContent='🔮 Знайти схожі';
+}
+
+function copySimilar(qs){navigator.clipboard.writeText(qs.join('\n'));const b=event.currentTarget;b.textContent='✓ Скопійовано!';setTimeout(()=>b.textContent='📋 Копіювати всі',1500);}
+function openSimilar(qs){qs.slice(0,10).forEach(q=>window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank'));}
+
+function saveKey(){
+  const k=document.getElementById('geminiKey').value.trim();
+  if(!k){document.getElementById('keyStatus').innerHTML='<span style="color:#ff5c5c">Введи ключ</span>';return;}
+  localStorage.setItem('gemini_key',k);
+  document.getElementById('keyStatus').innerHTML='<span style="color:#00e5a0">✓ Ключ збережено</span>';
+}
+
+async function testKey(){
+  const k=document.getElementById('geminiKey').value.trim()||localStorage.getItem('gemini_key')||'';
+  if(!k){document.getElementById('keyStatus').innerHTML='<span style="color:#ff5c5c">Введи ключ</span>';return;}
+  document.getElementById('keyStatus').innerHTML='<span style="color:#7a7a90">⏳ Перевіряю доступні моделі...</span>';
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${k}`);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const models=data.models?.map(m=>m.name.replace('models/',''))||[];
+    const flash=models.filter(m=>m.includes('flash')||m.includes('pro'));
+    document.getElementById('keyStatus').innerHTML=`<span style="color:#00e5a0">✓ Ключ працює! Моделі: ${flash.slice(0,5).join(', ')}</span>`;
+    // Auto-select best model
+    const best=models.find(m=>m.includes('gemini-1.5-flash'))||models.find(m=>m.includes('flash'))||models[0];
+    if(best){localStorage.setItem('gemini_model',best);document.getElementById('keyStatus').innerHTML+=`<br><span style="color:#7c6aff">Обрано: ${best}</span>`;}
+  }catch(e){
+    document.getElementById('keyStatus').innerHTML=`<span style="color:#ff5c5c">❌ ${e.message}</span>`;
+  }
+}
+
+function loadKey(){
+  const k=localStorage.getItem('gemini_key')||'';
+  if(k){
+    document.getElementById('geminiKey').value=k;
+    document.getElementById('keyStatus').innerHTML='<span style="color:#00e5a0">✓ Ключ збережено</span>';
+  }
+}
+
+async function genAIQueries(){
+  const apiKey=document.getElementById('geminiKey').value.trim()||localStorage.getItem('gemini_key')||'';
+  if(!apiKey){document.getElementById('queriesOut').innerHTML='<div class="alert" style="background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3);color:#ff5c5c">Введи Gemini API ключ вище</div>';return;}
+  if(!selNiches.length){document.getElementById('queriesOut').innerHTML='<div class="alert alert-info">Вибери хоча б одну нішу</div>';return;}
+
+  const count=document.querySelector('input[name="qcount"]:checked')?.value||'15';
+  const btn=document.getElementById('genBtn');
+  btn.disabled=true;btn.textContent='⏳ Gemini генерує...';
+  document.getElementById('queriesOut').innerHTML='<div class="alert alert-info">⏳ Gemini генерує запити для: <strong>'+selNiches.join(', ')+'</strong>...</div>';
+
+  const prompt=`You are an SEO outreach specialist finding authoritative content sites to build backlinks from.
+
+Generate exactly ${count} Google search queries per niche. These queries must surface BLOG POSTS and CONTENT SITES in Google results — NOT Wikipedia, Reddit, Quora, or dictionaries.
+
+Niches: ${selNiches.join(', ')}
+
+CRITICAL RULES:
+- Queries must be specific enough that Google shows BLOG ARTICLES and NICHE WEBSITES, not encyclopedias
+- Avoid single-word or 2-word generic queries like "active learning" or "study tips" — these return Wikipedia
+- Use specific angles, problems, scenarios that bloggers write about
+- Good: "how to stay focused while studying at home", "why remote teams struggle with communication", "ways to reduce customer churn in SaaS"
+- Bad: "learning styles", "SaaS", "productivity tips" — too generic, returns Wikipedia/Reddit
+- Mix: how-to questions, why questions, specific problem-focused phrases, scenario-based queries
+- Length: mostly 5-10 words — specific enough to find niche blogs
+- INFORMATIONAL only — no buying intent, no brand names, no "best X" lists
+- Each query should feel like something a blogger would title their article
+- Each niche gets exactly ${count} unique varied queries
+
+Return ONLY valid JSON, no markdown, no explanation:
+{"niches":{"niche_name":["query1","query2",...${count} total]}}`;
+
+  try{
+    const model=localStorage.getItem('gemini_model')||'gemini-1.5-flash';
+    const url=`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
+    const res=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{temperature:1.0,maxOutputTokens:8192}
+      })
+    });
+    if(!res.ok){const err=await res.json();throw new Error(err.error?.message||'API error '+res.status);}
+    const data=await res.json();
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    if(!text)throw new Error('Gemini повернув порожню відповідь');
+    let parsed;
+    try{
+      const clean=text.replace(/```json\n?|```\n?/g,'').trim();
+      parsed=JSON.parse(clean);
+    }catch{
+      // Try to extract JSON from text
+      const match=text.match(/\{[\s\S]*\}/);
+      if(match)parsed=JSON.parse(match[0]);
+      else throw new Error('Не вдалось розпарсити JSON: '+text.slice(0,300));
+    }
+    renderAIQueries(parsed.niches||parsed||{});
+  }catch(e){
+    document.getElementById('queriesOut').innerHTML=`<div class="alert" style="background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3);color:#ff5c5c">❌ Помилка: ${e.message}<br><small>Перевір ключ або спробуй ще раз</small></div>`;
+  }
+  btn.disabled=false;btn.textContent='⚡ Згенерувати через Gemini';
+}
+
+function renderAIQueries(niches){
+  const el=document.getElementById('queriesOut');
+  const allQueries=[];
+  Object.entries(niches).forEach(([n,qs])=>qs.forEach(q=>allQueries.push({n,q})));
+
+  if(!allQueries.length){el.innerHTML='<div class="alert alert-info">AI не повернув запитів. Спробуй ще раз.</div>';return;}
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <span style="color:#7a7a90;font-size:13px">${allQueries.length} запитів згенеровано</span>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="copyAllQueries()">📋 Копіювати всі</button>
+      <button class="btn btn-success btn-sm" onclick="openFirst10()">🔍 Відкрити перші 10</button>
+    </div>
+  </div>`;
+
+  Object.entries(niches).forEach(([niche,qs])=>{
+    html+=`<div class="card" style="margin-bottom:12px">
+      <div class="card-label" style="margin-bottom:10px">📂 ${niche} — ${qs.length} запитів</div>`;
+    qs.forEach(q=>{
+      html+=`<div class="trow">
+        <div style="font-family:monospace;font-size:12px;color:#f0f0f5;flex:1">${q}</div>
+        <a href="https://www.google.com/search?q=${encodeURIComponent(q)}" target="_blank" 
+           class="btn btn-ghost btn-sm" style="flex-shrink:0;margin-left:8px">🔍</a>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+
+  html+=`<div class="alert alert-info" style="margin-top:8px">
+    Відкривай запити в Google → копіюй домени що ранжуються (не рекламу) → Ahrefs Batch Analysis → Export → CSV Analyzer
+  </div>`;
+
+  el.innerHTML=html;
+  window._aiQueries=allQueries.map(x=>x.q);
+}
+
+function copyAllQueries(){
+  if(!window._aiQueries?.length)return;
+  navigator.clipboard.writeText(window._aiQueries.join('\n'));
+  const b=event.currentTarget;b.textContent='✓ Скопійовано!';setTimeout(()=>b.textContent='📋 Копіювати всі',1500);
+}
+function openFirst10(){
+  if(!window._aiQueries?.length)return;
+  window._aiQueries.slice(0,10).forEach(q=>window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank'));
+}
+
+// KW
+function renderKWTags(){document.getElementById('kwTags').innerHTML=blockKW.map((k,i)=>`<span class="tag">${k}<span class="tag-x" onclick="rmKW(${i})">✕</span></span>`).join('');}
+function addKW(){const v=document.getElementById('kwInput').value.trim().toLowerCase();if(v&&!blockKW.includes(v))blockKW.push(v);document.getElementById('kwInput').value='';renderKWTags();}
+function rmKW(i){blockKW.splice(i,1);renderKWTags();}
+
+function saveFilters(){saveStorage();if(mainData.length)runAnalysis();const b=event.currentTarget;b.textContent='✓ Збережено!';setTimeout(()=>b.textContent='✓ Зберегти та запустити',1500);}
+
+// STORAGE
+function saveStorage(){
+  try{
+    localStorage.setItem('ot2_sl',JSON.stringify(stoplists));
+    localStorage.setItem('ot2_pn',JSON.stringify(projNames));
+    localStorage.setItem('ot2_f',JSON.stringify({F,blockKW,dr:document.getElementById('fDR').value,tr:document.getElementById('fTraffic').value,ptr:document.getElementById('fPageTr').value}));
+  }catch(e){}
+}
+function loadStorage(){
+  try{
+    const sl=localStorage.getItem('ot2_sl');if(sl)stoplists=JSON.parse(sl);
+    const pn=localStorage.getItem('ot2_pn');if(pn)projNames=JSON.parse(pn);
+    const f=localStorage.getItem('ot2_f');
+    if(f){const p=JSON.parse(f);
+      if(p.F)Object.assign(F,p.F);
+      if(p.blockKW)blockKW=p.blockKW;
+      if(p.dr)document.getElementById('fDR').value=p.dr;
+      if(p.tr)document.getElementById('fTraffic').value=p.tr;
+      if(p.ptr)document.getElementById('fPageTr').value=p.ptr;
+    }
+  }catch(e){}
+}
+</script>
+</body>
+</html>
